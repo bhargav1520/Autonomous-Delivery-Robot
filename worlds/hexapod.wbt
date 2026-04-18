@@ -83,6 +83,7 @@ DEF HEXAPOD Robot {
       device [
         RotationalMotor {
           name "hip_motor_l0"
+          maxTorque 10
           maxVelocity 5
           minPosition -0.7
           maxPosition 0.7
@@ -190,6 +191,7 @@ DEF HEXAPOD Robot {
       device [
         RotationalMotor {
           name "hip_motor_l1"
+          maxTorque 10
           maxVelocity 5
           minPosition -0.7
           maxPosition 0.7
@@ -246,6 +248,7 @@ DEF HEXAPOD Robot {
       device [
         RotationalMotor {
           name "hip_motor_l2"
+          maxTorque 10
           maxVelocity 5
           minPosition -0.7
           maxPosition 0.7
@@ -302,6 +305,7 @@ DEF HEXAPOD Robot {
       device [
         RotationalMotor {
           name "hip_motor_r0"
+          maxTorque 10
           maxVelocity 5
           minPosition -0.7
           maxPosition 0.7
@@ -368,6 +372,7 @@ DEF HEXAPOD Robot {
       device [
         RotationalMotor {
           name "hip_motor_r1"
+          maxTorque 10
           maxVelocity 5
           minPosition -0.7
           maxPosition 0.7
@@ -424,6 +429,7 @@ DEF HEXAPOD Robot {
       device [
         RotationalMotor {
           name "hip_motor_r2"
+          maxTorque 10
           maxVelocity 5
           minPosition -0.7
           maxPosition 0.7
@@ -496,7 +502,7 @@ DEF HEXAPOD Robot {
   name "hexapod"
   boundingObject USE BODY_SHAPE
   physics USE STANDARD_PHYSICS
-  controller "hexapod"
+  controller "main_hexapod_delivery"
   linearVelocity 0.012738282598754796 -0.040311224734095576 0.028909722629147493
   angularVelocity -5.6632511073983544e-05 0.0024895136542883787 -0.00997334972492835
 }
