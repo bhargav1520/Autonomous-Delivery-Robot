@@ -50,12 +50,13 @@ DELIVERY_LOCATIONS = {
 
 # ========== GAIT PARAMETERS ==========
 GAIT_CONFIG = {
-    "hip_front_stand": 0.24,         # Front leg hip angle when standing
-    "hip_rear_stand": 0.20,          # Rear leg hip angle when standing
-    "knee_stand": 0.0,               # Knee position when standing (within -0.02 to 0.02 slider range)
-    "hip_forward_extension": 0.50,   # Increased forward reach for propulsion
-    "hip_back_extension": 0.50,      # Increased backward push for propulsion
-    "knee_lift": 0.015,              # Small lift within slider range (±0.02m = ±2cm)
+    "hip_front_stand": 0.08,         # Front legs at natural stable angle (~4.6°)
+    "hip_rear_stand": 0.08,          # Rear legs at natural stable angle
+    "knee_stand": 0.0,               # Neutral knee position (no compression needed)
+    "hip_forward_extension": 0.58,   # Forward reach: ±0.58 rad (1.16 rad stride, safe within ±0.7)
+    "hip_back_extension": 0.58,      # Backward push: ±0.58 rad for symmetric gait
+    "knee_lift": 0.012,              # Lift to 1.2cm for better step definition
+    "heading_p_gain": 3.0,           # Increased to 3.0 for more aggressive steering
 }
 
 # ========== UI / DISPLAY SETTINGS ==========

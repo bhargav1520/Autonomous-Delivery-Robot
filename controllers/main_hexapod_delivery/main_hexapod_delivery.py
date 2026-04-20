@@ -13,14 +13,15 @@ from ui_control import SimulationInterface, print_control_help
 # ========== GAIT PARAMETERS ==========
 TIMESTEP = 8
 GAIT_FREQ = 1.2
-HIP_FRONT_STAND = 0.24
-HIP_REAR_STAND = 0.20
-KNEE_STAND = 0.0                  # Neutral knee position (within -0.02 to 0.02 range)
-HIP_FORWARD_EXT = 0.50            # Increased forward reach for propulsion (was 0.20)
-HIP_BACK_EXT = 0.50               # Increased backward push (was 0.22)
-KNEE_LIFT = 0.015                 # Small lift within slider range (2cm max)
+HIP_FRONT_STAND = 0.08            # Front legs at natural stable angle (~4.6°)
+HIP_REAR_STAND = 0.08             # Rear legs at natural stable angle  
+KNEE_STAND = 0.0                  # Neutral knee position (no compression)
+HIP_FORWARD_EXT = 0.58            # Forward reach: ±0.58 rad (total 1.16 rad stride, safe within ±0.7)
+HIP_BACK_EXT = 0.58               # Backward push: ±0.58 rad for symmetric gait
+KNEE_LIFT = 0.012                 # Lift to 1.2cm for better step definition
 RAMP_TIME = 1.5
-SETTLE_TIME = 1.0
+SETTLE_TIME = 2.0                 # Extra time for ground contact stabilization
+HEADING_P_GAIN = 3.0              # Increased to 3.0 for more aggressive steering (was 2.0)
 
 HIP_NAMES = [
     "hip_motor_l0", "hip_motor_l1", "hip_motor_l2",
@@ -113,6 +114,7 @@ class HexapodAutonomousDelivery:
         self.walk_timer = 0.0
         self.is_walking = False
         self.direction_sign = 1.0
+        self.current_heading = 0.0  # Robot's current heading (radians)
         self.last_status_time = 0.0
         
         print("[INIT] Hexapod systems ready!")
@@ -123,17 +125,22 @@ class HexapodAutonomousDelivery:
     
     def hip_cmd(self, leg, angle_mag):
         """Generate hip command with direction"""
-        return self.clamp(HIP_SIGN[leg] * self.direction_sign * angle_mag, -0.8, 0.8)
+        return self.clamp(HIP_SIGN[leg] * self.direction_sign * angle_mag, -0.7, 0.7)
     
     def hip_stand_mag(self, leg):
         """Get standing hip magnitude based on leg position"""
         return HIP_FRONT_STAND if leg in ("l0", "r0") else HIP_REAR_STAND
     
     def apply_stand_pose(self):
-        """Apply standing pose - stationary and stable"""
+        """Apply standing pose - stationary and stable (symmetric, no HIP_SIGN inversion)"""
         for leg in self.legs:
             if leg in self.hips and self.hips[leg] is not None:
-                self.hips[leg].setPosition(self.hip_cmd(leg, self.hip_stand_mag(leg)))
+                # Get standing hip magnitude directly without HIP_SIGN inversion
+                # This ensures both left and right legs have symmetric standing pose
+                stand_mag = self.hip_stand_mag(leg)
+                # Clamp directly to motor range
+                hip_target = self.clamp(stand_mag, -0.7, 0.7)
+                self.hips[leg].setPosition(hip_target)
             if leg in self.knees and self.knees[leg] is not None:
                 self.knees[leg].setPosition(self.clamp(KNEE_STAND, -0.02, 0.02))  # Knee slider range
     
@@ -186,6 +193,22 @@ class HexapodAutonomousDelivery:
             distance = math.sqrt((current_pos[0] - target_pos[0])**2 + 
                                (current_pos[1] - target_pos[1])**2)
             
+            # Calculate target heading to navigate toward goal
+            dx = target_pos[0] - current_pos[0]
+            dz = target_pos[1] - current_pos[1]
+            target_heading = math.atan2(dx, dz)  # Angle to target
+            
+            # Update heading based on error
+            heading_error = target_heading - self.current_heading
+            # Normalize to [-pi, pi]
+            while heading_error > math.pi:
+                heading_error -= 2 * math.pi
+            while heading_error < -math.pi:
+                heading_error += 2 * math.pi
+            
+            # Apply proportional control: positive error = turn right
+            self.direction_sign = self.clamp(1.0 + HEADING_P_GAIN * heading_error / math.pi, -1.0, 1.0)
+            
             # Start walking if far from target and no obstacle
             if (distance > WAYPOINT_TOLERANCE and 
                 not self.delivery.should_avoid_obstacle() and 
@@ -197,6 +220,22 @@ class HexapodAutonomousDelivery:
             home_pos = DELIVERY_POINTS["HOME"]
             distance = math.sqrt((current_pos[0] - home_pos[0])**2 + 
                                (current_pos[1] - home_pos[1])**2)
+            
+            # Calculate target heading to navigate home
+            dx = home_pos[0] - current_pos[0]
+            dz = home_pos[1] - current_pos[1]
+            target_heading = math.atan2(dx, dz)
+            
+            # Update heading based on error
+            heading_error = target_heading - self.current_heading
+            # Normalize to [-pi, pi]
+            while heading_error > math.pi:
+                heading_error -= 2 * math.pi
+            while heading_error < -math.pi:
+                heading_error += 2 * math.pi
+            
+            # Apply proportional control
+            self.direction_sign = self.clamp(1.0 + HEADING_P_GAIN * heading_error / math.pi, -1.0, 1.0)
             
             if (distance > WAYPOINT_TOLERANCE and 
                 not self.delivery.should_avoid_obstacle() and 
@@ -244,6 +283,18 @@ class HexapodAutonomousDelivery:
                 
                 # Update delivery system
                 self.delivery.update()
+                
+                # Update current heading based on walking direction and gait progress
+                # The heading changes proportionally to direction_sign
+                if self.is_walking and self.direction_sign != 0:
+                    # Update heading based on the gait phase and direction
+                    heading_change_rate = 0.5 * self.direction_sign  # rad/s * direction
+                    self.current_heading += heading_change_rate * (self.timestep / 1000.0)
+                    # Normalize to [-pi, pi]
+                    while self.current_heading > math.pi:
+                        self.current_heading -= 2 * math.pi
+                    while self.current_heading < -math.pi:
+                        self.current_heading += 2 * math.pi
                 
                 # Update robot gait based on delivery state
                 self.update_gait_control(current_time)
