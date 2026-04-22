@@ -1,0 +1,162 @@
+"""
+WORLD FILE SNIPPET - hexapod.wbt modifications
+Add these sections to your existing hexapod.wbt file
+"""
+
+# ===== STEP 1: Make the robot a Supervisor =====
+# Find your Robot node and add 'supervisor TRUE':
+
+DEF HEXAPOD_ROBOT Robot {
+  translation 0 0.3 0
+  rotation 0 0 1 0
+  children [
+    # ... existing robot definition ...
+  ]
+  supervisor TRUE          # <--- ADD THIS LINE
+  controller "delivery_robot"
+  controllerArgs "webots_home=/dev/null"
+}
+
+
+# ===== STEP 2: Add Display device to robot =====
+# Inside the robot's 'children' array, add this Display node:
+
+Display {
+  translation 0 0 0
+  rotation 0 0 1 0
+  width 200
+  height 200
+  children [
+    Shape {
+      appearance Appearance {
+        material Material {
+          emissiveColor 0 0 0
+        }
+      }
+      geometry Box {
+        size 0.1 0.001 0.1
+      }
+    }
+  ]
+}
+
+
+# ===== STEP 3: Add 4 Box nodes to the world (NOT inside robot) =====
+# Add these outside the robot definition, at world level:
+
+DEF BOX_A Solid {
+  translation 2.0 0.05 1.5
+  rotation 0 0 1 0
+  children [
+    Shape {
+      appearance Appearance {
+        material Material {
+          baseColor 1 0.2 0.2
+          metalness 0
+          roughness 0.5
+        }
+      }
+      geometry Box {
+        size 0.15 0.1 0.15
+      }
+    }
+  ]
+  boundingObject Box {
+    size 0.15 0.1 0.15
+  }
+  physics Physics {
+    density 500
+  }
+}
+
+DEF BOX_B Solid {
+  translation -2.0 0.05 1.5
+  rotation 0 0 1 0
+  children [
+    Shape {
+      appearance Appearance {
+        material Material {
+          baseColor 0.2 0.4 1
+          metalness 0
+          roughness 0.5
+        }
+      }
+      geometry Box {
+        size 0.15 0.1 0.15
+      }
+    }
+  ]
+  boundingObject Box {
+    size 0.15 0.1 0.15
+  }
+  physics Physics {
+    density 500
+  }
+}
+
+DEF BOX_C Solid {
+  translation 2.0 0.05 -1.5
+  rotation 0 0 1 0
+  children [
+    Shape {
+      appearance Appearance {
+        material Material {
+          baseColor 0.2 1 0.4
+          metalness 0
+          roughness 0.5
+        }
+      }
+      geometry Box {
+        size 0.15 0.1 0.15
+      }
+    }
+  ]
+  boundingObject Box {
+    size 0.15 0.1 0.15
+  }
+  physics Physics {
+    density 500
+  }
+}
+
+DEF BOX_D Solid {
+  translation -2.0 0.05 -1.5
+  rotation 0 0 1 0
+  children [
+    Shape {
+      appearance Appearance {
+        material Material {
+          baseColor 1 1 0.2
+          metalness 0
+          roughness 0.5
+        }
+      }
+      geometry Box {
+        size 0.15 0.1 0.15
+      }
+    }
+  ]
+  boundingObject Box {
+    size 0.15 0.1 0.15
+  }
+  physics Physics {
+    density 500
+  }
+}
+
+
+# ===== VERIFICATION CHECKLIST =====
+# After adding these to your .wbt file, verify in Webots:
+# 
+# 1. Open your hexapod.wbt in Webots
+# 2. Click on the robot node → look for "supervisor" field → confirm TRUE
+# 3. Look for 4 colored boxes on the ground at positions:
+#    - Red box (HOUSE_A) at (2.0, 1.5)
+#    - Blue box (HOUSE_B) at (-2.0, 1.5)
+#    - Green box (HOUSE_C) at (2.0, -1.5)
+#    - Yellow box (HOUSE_D) at (-2.0, -1.5)
+# 4. If using Supervisor robot type:
+#    - Run simulation
+#    - Press 'S' to start delivery
+#    - Watch boxes disappear when robot reaches them
+#    - Press 'P' then 'S' again → boxes should reappear

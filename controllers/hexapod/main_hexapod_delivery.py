@@ -52,8 +52,8 @@ class HexapodAutonomousDelivery:
         print("  HEXAPOD AUTONOMOUS DELIVERY SYSTEM INITIALIZING")
         print("="*70)
         
-        # Initialize delivery system
-        self.delivery = DeliverySystem()
+        # Initialize delivery system with this robot instance
+        self.delivery = DeliverySystem(self.robot)
         
         # Initialize UI
         self.ui = SimulationInterface(self.robot, self.delivery)
@@ -100,6 +100,8 @@ class HexapodAutonomousDelivery:
         self.is_walking = False
         self.direction_sign = 1.0
         self.last_status_time = 0.0
+        self.last_obstacle_log = 0.0
+        self.debug_obstacle = True  # Enable obstacle debug logging
         
         print("[INIT] Hexapod systems ready!")
         
@@ -150,10 +152,28 @@ class HexapodAutonomousDelivery:
             self.knees[leg].setPosition(self.clamp(knee_target, -1.5, 0.1))
     
     def update_gait_control(self, current_time):
-        """Determine if robot should walk based on delivery state"""
+        """Determine if robot should walk based on delivery state with smart obstacle avoidance"""
         
         # Check if we should be moving
         should_move = False
+        obstacle_detected = self.delivery.should_avoid_obstacle()
+        escape_dir = self.delivery.get_obstacle_direction()
+        clearances = self.delivery.get_clearances()
+        
+        # Debug: Log sensor readings periodically
+        if self.debug_obstacle and (current_time - self.last_obstacle_log > 1.0):
+            front_val = clearances.get('front', float('inf'))
+            left_val = clearances.get('left', float('inf'))
+            right_val = clearances.get('right', float('inf'))
+            back_val = clearances.get('back', float('inf'))
+            
+            front_str = f"{front_val:.3f}m" if front_val < 10 else "∞"
+            left_str = f"{left_val:.3f}m" if left_val < 10 else "∞"
+            right_str = f"{right_val:.3f}m" if right_val < 10 else "∞"
+            back_str = f"{back_val:.3f}m" if back_val < 10 else "∞"
+            
+            print(f"[DEBUG SENSORS @ {current_time:.1f}s] Front: {front_str} | Left: {left_str} | Right: {right_str} | Back: {back_str} | Obstacle: {obstacle_detected} | Escape: {escape_dir}")
+            self.last_obstacle_log = current_time
         
         if self.delivery.state == "NAVIGATING":
             current_pos = self.delivery.get_robot_position()
@@ -161,11 +181,52 @@ class HexapodAutonomousDelivery:
             distance = math.sqrt((current_pos[0] - target_pos[0])**2 + 
                                (current_pos[1] - target_pos[1])**2)
             
-            # Start walking if far from target and no obstacle
-            if (distance > WAYPOINT_TOLERANCE and 
-                not self.delivery.should_avoid_obstacle() and 
-                self.delivery.battery_level > 5):
-                should_move = True
+            # Handle obstacle avoidance with intelligent escape logic
+            if obstacle_detected:
+                print(f"[AVOID] Clearances - Front: {clearances['front']:.2f}m, Left: {clearances['left']:.2f}m, Right: {clearances['right']:.2f}m, Back: {clearances['back']:.2f}m")
+                
+                if escape_dir == 'FORWARD':
+                    # Path ahead is clear, continue
+                    self.direction_sign = 1.0
+                    should_move = True
+                    print(f"[AVOID] Path FORWARD is clear - proceeding")
+                
+                elif escape_dir == 'LEFT':
+                    # Turn left to find opening
+                    self.direction_sign = -1.0
+                    should_move = True
+                    print(f"[AVOID] Steering LEFT - found clear path")
+                
+                elif escape_dir == 'RIGHT':
+                    # Turn right to find opening
+                    self.direction_sign = 1.0
+                    should_move = True
+                    print(f"[AVOID] Steering RIGHT - found clear path")
+                
+                elif escape_dir == 'BACK':
+                    # Move backward to create space
+                    self.direction_sign = -1.0  # Reverse direction
+                    should_move = True
+                    print(f"[AVOID] Moving BACKWARD - creating space")
+                
+                elif escape_dir == 'BACK_HARD':
+                    # Critical: obstacles very close, reverse urgently
+                    self.direction_sign = -1.0
+                    should_move = True
+                    print(f"[AVOID] CRITICAL - Moving BACKWARD with urgency!")
+                
+                else:  # STOP
+                    # Fully trapped, don't move
+                    self.direction_sign = 1.0
+                    should_move = False
+                    print(f"[AVOID] BLOCKED - Cannot find escape route")
+            
+            else:
+                # No obstacle, move toward target normally
+                self.direction_sign = 1.0
+                if (distance > WAYPOINT_TOLERANCE and 
+                    self.delivery.battery_level > 5):
+                    should_move = True
         
         elif self.delivery.state == "RETURNING":
             current_pos = self.delivery.get_robot_position()
@@ -173,10 +234,29 @@ class HexapodAutonomousDelivery:
             distance = math.sqrt((current_pos[0] - home_pos[0])**2 + 
                                (current_pos[1] - home_pos[1])**2)
             
-            if (distance > WAYPOINT_TOLERANCE and 
-                not self.delivery.should_avoid_obstacle() and 
-                self.delivery.battery_level > 5):
-                should_move = True
+            # Handle obstacle avoidance while returning
+            if obstacle_detected:
+                if escape_dir == 'FORWARD':
+                    self.direction_sign = 1.0
+                    should_move = True
+                elif escape_dir == 'LEFT':
+                    self.direction_sign = -1.0
+                    should_move = True
+                elif escape_dir == 'RIGHT':
+                    self.direction_sign = 1.0
+                    should_move = True
+                elif escape_dir in ['BACK', 'BACK_HARD']:
+                    self.direction_sign = -1.0
+                    should_move = True
+                    print(f"[RETURN] Reversing to avoid obstacle")
+                else:
+                    self.direction_sign = 1.0
+                    should_move = False
+            else:
+                self.direction_sign = 1.0
+                if (distance > WAYPOINT_TOLERANCE and 
+                    self.delivery.battery_level > 5):
+                    should_move = True
         
         # Update walking state
         if should_move and not self.is_walking:

@@ -23,6 +23,8 @@ BATTERY_IDLE_DRAIN = 0.02
 DELIVERY_STOP_TIME = 3.0  # seconds to stop at delivery point
 WAYPOINT_TOLERANCE = 0.3  # meters
 OBSTACLE_THRESHOLD = 0.5  # meters - avoid obstacles closer than this
+CRITICAL_OBSTACLE_THRESHOLD = 0.25  # meters - very close, need immediate action
+SAFE_DISTANCE = 0.7  # meters - safe to proceed forward
 MAX_WALK_SPEED = 0.5  # m/s
 
 # Delivery locations (x, z) in world coordinates
@@ -35,8 +37,13 @@ DELIVERY_POINTS = {
 }
 
 class DeliverySystem:
-    def __init__(self):
-        self.robot = Supervisor()
+    def __init__(self, robot=None):
+        # Accept robot instance instead of creating new Supervisor
+        if robot is None:
+            self.robot = Supervisor()
+        else:
+            self.robot = robot
+            
         self.timestep = int(self.robot.getBasicTimeStep())
         
         # Get sensors and motors
@@ -55,10 +62,19 @@ class DeliverySystem:
         for name in sensor_names:
             try:
                 ds = self.robot.getDevice(name)
-                ds.enable(self.timestep)
-                self.distance_sensors[name] = ds
-            except:
-                pass
+                if ds is not None:
+                    ds.enable(self.timestep)
+                    self.distance_sensors[name] = ds
+                    print(f"[SENSORS] Successfully enabled {name}")
+                else:
+                    print(f"[SENSORS] Warning: {name} not found in robot model")
+            except Exception as e:
+                print(f"[SENSORS] Failed to initialize {name}: {e}")
+        
+        if not self.distance_sensors:
+            print("[SENSORS] WARNING: No distance sensors found! Obstacle avoidance disabled.")
+        else:
+            print(f"[SENSORS] ✓ Initialized {len(self.distance_sensors)} distance sensors for obstacle detection")
         
         # Robot state
         self.battery_level = MAX_BATTERY
@@ -120,23 +136,92 @@ class DeliverySystem:
         return path
     
     def check_obstacles(self):
-        """Check distance sensors for obstacles"""
-        min_distance = float('inf')
-        obstacle_detected = False
+        """Check distance sensors for obstacles and evaluate all directions
+        Returns: (obstacle_detected, min_distance, best_escape_direction, clearances_dict)
+        best_escape_direction: 'FORWARD', 'LEFT', 'RIGHT', 'BACK', or 'NONE'
+        clearances_dict: {'front': dist, 'left': dist, 'right': dist, 'back': dist}
+        """
+        if not self.distance_sensors:
+            # No sensors available
+            return False, float('inf'), 'FORWARD', {'front': float('inf'), 'left': float('inf'), 'right': float('inf'), 'back': float('inf')}
         
+        clearances = {
+            'front': 10.0,  # Default: far away (no obstacle)
+            'left': 10.0,
+            'right': 10.0,
+            'back': 10.0,
+        }
+        
+        # Scan all sensors and build clearance map
         for sensor_name, sensor in self.distance_sensors.items():
-            distance = sensor.getValue()
-            if distance < min_distance:
-                min_distance = distance
-            if distance < OBSTACLE_THRESHOLD:
-                obstacle_detected = True
-                print(f"[OBSTACLE] {sensor_name}: {distance:.2f}m")
+            try:
+                raw_value = sensor.getValue()
+                # In Webots, sensor.getValue() returns the actual distance in meters
+                # When nothing is detected, it typically returns a large value or 0
+                distance = float(raw_value)
+                
+                # Treat 0 or negative values as "no obstacle" (out of range)
+                if distance <= 0:
+                    distance = 10.0
+                    
+            except Exception as e:
+                distance = 10.0
+                print(f"[SENSOR ERROR] {sensor_name}: {e}")
+            
+            sensor_lower = sensor_name.lower()
+            if 'front' in sensor_lower or 'forward' in sensor_lower:
+                clearances['front'] = min(clearances['front'], distance)
+            elif 'left' in sensor_lower:
+                clearances['left'] = min(clearances['left'], distance)
+            elif 'right' in sensor_lower:
+                clearances['right'] = min(clearances['right'], distance)
+            elif 'back' in sensor_lower:
+                clearances['back'] = min(clearances['back'], distance)
         
-        return obstacle_detected, min_distance
+        # Determine if obstacle is detected (distance < threshold)
+        obstacle_detected = any(d < OBSTACLE_THRESHOLD for d in clearances.values())
+        min_distance = min(clearances.values())
+        
+        # Calculate best escape direction intelligently
+        best_escape = self._find_best_escape(clearances)
+        
+        return obstacle_detected, min_distance, best_escape, clearances
+    
+    def _find_best_escape(self, clearances):
+        """Find the best direction to escape based on available clearances
+        Priority:
+        1. If front is clear and safe, move forward
+        2. Check left/right for the clearest path
+        3. If trapped, move backward
+        """
+        front = clearances.get('front', 0)
+        left = clearances.get('left', 0)
+        right = clearances.get('right', 0)
+        back = clearances.get('back', 0)
+        
+        # If front is sufficiently clear, go forward
+        if front >= SAFE_DISTANCE:
+            return 'FORWARD'
+        
+        # Find best side (left or right)
+        if left > right and left >= OBSTACLE_THRESHOLD:
+            return 'LEFT'
+        elif right >= OBSTACLE_THRESHOLD:
+            return 'RIGHT'
+        
+        # If sides are blocked but back is clear, move backward
+        if back >= OBSTACLE_THRESHOLD:
+            return 'BACK'
+        
+        # All blocked or critical - move backward to create space
+        if min(left, right) < CRITICAL_OBSTACLE_THRESHOLD:
+            return 'BACK_HARD'  # Reverse with urgency
+        
+        return 'STOP'  # Fully trapped
     
     def update_battery(self):
         """Update battery level based on activity"""
-        obstacle_detected, _ = self.check_obstacles()
+        obstacle_detected, _, _, _ = self.check_obstacles()
         
         if self.state == "NAVIGATING":
             self.battery_level -= BATTERY_DRAIN_RATE
@@ -151,9 +236,23 @@ class DeliverySystem:
             self.current_target = "HOME"
     
     def should_avoid_obstacle(self):
-        """Determine if robot should stop or take evasive action"""
-        obstacle_detected, min_distance = self.check_obstacles()
+        """Determine if robot should take evasive action"""
+        obstacle_detected, _, _, _ = self.check_obstacles()
         return obstacle_detected
+    
+    def get_obstacle_direction(self):
+        """Get the best escape direction from obstacles
+        Returns: 'FORWARD', 'LEFT', 'RIGHT', 'BACK', 'BACK_HARD', 'STOP', or None
+        """
+        _, _, best_escape, _ = self.check_obstacles()
+        return best_escape
+    
+    def get_clearances(self):
+        """Get clearance distances in all directions
+        Returns: dict with keys 'front', 'left', 'right', 'back'
+        """
+        _, _, _, clearances = self.check_obstacles()
+        return clearances
     
     def navigate_to_waypoint(self, target_location):
         """Navigate robot towards target location using GPS and heading control"""
