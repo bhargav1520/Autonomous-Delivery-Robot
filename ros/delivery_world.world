@@ -1,0 +1,140 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="delivery_world">
+
+    <include><uri>model://ground_plane</uri></include>
+    <include><uri>model://sun</uri></include>
+
+    <!-- Physics tuning for stability -->
+    <physics type="ode">
+      <max_step_size>0.004</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>250</real_time_update_rate>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>50</iters>
+        </solver>
+      </ode>
+    </physics>
+
+    <!-- ── BOUNDARY WALLS ── -->
+    <model name="wall_north">
+      <static>true</static><pose>0 5 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>10 0.2 1</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>10 0.2 1</size></box></geometry>
+          <material><ambient>0.4 0.4 0.4 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_south">
+      <static>true</static><pose>0 -5 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>10 0.2 1</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>10 0.2 1</size></box></geometry>
+          <material><ambient>0.4 0.4 0.4 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_east">
+      <static>true</static><pose>5 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.2 10 1</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>0.2 10 1</size></box></geometry>
+          <material><ambient>0.4 0.4 0.4 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_west">
+      <static>true</static><pose>-5 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.2 10 1</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>0.2 10 1</size></box></geometry>
+          <material><ambient>0.4 0.4 0.4 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ── PICKUP ZONE marker (green platform) ── -->
+    <model name="pickup_zone">
+      <static>true</static><pose>2 2 0.01 0 0 0</pose>
+      <link name="link">
+        <visual name="v">
+          <geometry><box><size>0.8 0.8 0.02</size></box></geometry>
+          <material><ambient>0.0 0.8 0.2 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ── DROP ZONE marker (blue platform) ── -->
+    <model name="drop_zone">
+      <static>true</static><pose>-2 -2 0.01 0 0 0</pose>
+      <link name="link">
+        <visual name="v">
+          <geometry><box><size>0.8 0.8 0.02</size></box></geometry>
+          <material><ambient>0.1 0.3 0.9 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ── HOME BASE marker (yellow) ── -->
+    <model name="home_base">
+      <static>true</static><pose>0 0 0.01 0 0 0</pose>
+      <link name="link">
+        <visual name="v">
+          <geometry><box><size>0.5 0.5 0.02</size></box></geometry>
+          <material><ambient>1.0 0.9 0.0 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ── DELIVERY BOX (movable, red) ── -->
+    <model name="delivery_box">
+      <static>false</static>
+      <pose>2 2 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="c">
+          <geometry><box><size>0.25 0.20 0.20</size></box></geometry>
+        </collision>
+        <visual name="v">
+          <geometry><box><size>0.25 0.20 0.20</size></box></geometry>
+          <material><ambient>1 0.1 0.1 1</ambient></material>
+        </visual>
+        <inertial>
+          <mass>0.5</mass>
+          <inertia>
+            <ixx>0.004</ixx><iyy>0.004</iyy><izz>0.004</izz>
+          </inertia>
+        </inertial>
+      </link>
+    </model>
+
+    <!-- ── OBSTACLES ── -->
+    <model name="obstacle_1">
+      <static>true</static><pose>0 2 0.3 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.3 0.3 0.6</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>0.3 0.3 0.6</size></box></geometry>
+          <material><ambient>0.6 0.3 0.1 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+    <model name="obstacle_2">
+      <static>true</static><pose>-1 0 0.3 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.3 0.3 0.6</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>0.3 0.3 0.6</size></box></geometry>
+          <material><ambient>0.6 0.3 0.1 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

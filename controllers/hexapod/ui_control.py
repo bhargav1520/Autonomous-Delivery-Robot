@@ -175,3 +175,5 @@ def print_control_help():
     print("  Q  - STOP and return to HOME")
     print("  P  - Print detailed status")
     print("="*60 + "\n")
+
+

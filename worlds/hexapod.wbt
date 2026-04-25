@@ -23,8 +23,8 @@ WorldInfo {
   ]
 }
 Viewpoint {
-  orientation 0.39372716905481336 0.7362186277804784 -0.5504189753788578 1.4437357557159638
-  position 28.479283102977377 -27.032374751296043 9.16777897200325
+  orientation -0.41940137460819826 0.25705966229418176 0.8706450579874414 2.246802620744411
+  position 32.302642319798544 -28.01436250671203 10.170355282549004
   follow "hexapod"
 }
 TexturedBackground {
@@ -36,7 +36,7 @@ RectangleArena {
   floorTileSize 3 3
 }
 DEF DELIVERY_BLOCK Solid {
-  translation 30.11765637125087 -29.907136492826822 0.18
+  translation 0 -5 0
   children [
     Shape {
       appearance PBRAppearance {
@@ -70,8 +70,8 @@ DEF DELIVERY_DROP_ZONE Solid {
   locked TRUE
 }
 DEF HEXAPOD Robot {
-  translation 30.118017642026455 -29.907513158540155 0.04445275193617181
-  rotation -0.0005167347375132851 0.0004314150396320233 -0.9999997734331116 0.7844976924438338
+  translation 25.89091275760809 -25.527849761723434 0.04497196918464484
+  rotation -0.00034957116742410563 0.0003196476578793288 -0.9999998878126806 0.7869705914345078
   children [
     DEF compass Compass {
     }
@@ -116,7 +116,7 @@ DEF HEXAPOD Robot {
     }
     DEF HIP_HINGE_JOINT_L0 HingeJoint {
       jointParameters HingeJointParameters {
-        position -0.014432532379434593
+        position -0.013869428544990254
         axis 0 0 1
         anchor 0.2 0.05 0
       }
@@ -130,7 +130,7 @@ DEF HEXAPOD Robot {
       ]
       endPoint Solid {
         translation 0.2 0.05 0
-        rotation 0 0 -1 0.014432532379434908
+        rotation 0 0 -1 0.013869428544995557
         children [
           DEF HIP_SHAPE Shape {
             appearance DEF HIP_APPEARANCE PBRAppearance {
@@ -176,7 +176,7 @@ DEF HEXAPOD Robot {
           }
           DEF KNEE_SLIDER_JOINT_L0 SliderJoint {
             jointParameters JointParameters {
-              position -0.015997558436661723
+              position -0.015967094883273452
               axis 0 0 -1
               minStop -0.02
               maxStop 0.02
@@ -190,7 +190,7 @@ DEF HEXAPOD Robot {
               }
             ]
             endPoint Solid {
-              translation 0 0.11 -0.014002441563338276
+              translation 0 0.11 -0.014032905116726547
               rotation 1 0 0 1.5708
               children [
                 DEF TIBIA_TRANS Pose {
@@ -209,21 +209,21 @@ DEF HEXAPOD Robot {
               boundingObject USE TIBIA_TRANS
               physics DEF STANDARD_PHYSICS Physics {
               }
-              linearVelocity 0.04003542498779318 -0.04252919695018281 -0.007495166529620122
-              angularVelocity -0.0001886487834256885 -2.5827777232234852e-05 -0.4001902317798917
+              linearVelocity -0.06193795013770971 0.06437347783562017 0.019261002543042503
+              angularVelocity -0.0014281812696103676 0.0013234869562256538 0.3708572781423042
             }
           }
         ]
         name "l0"
         boundingObject USE KNEE_TRANS
         physics USE STANDARD_PHYSICS
-        linearVelocity 0.040036565393799614 -0.04252937467585966 -0.0075014422675904035
-        angularVelocity -0.00018865063068730517 -2.582889945392244e-05 -0.4001902316584717
+        linearVelocity -0.061916578570443886 0.0643916635286216 0.018923394129419246
+        angularVelocity -0.0014282061397017348 0.0013234626375127488 0.3708572752322296
       }
     }
     DEF HIP_HINGE_JOINT_L1 HingeJoint {
       jointParameters HingeJointParameters {
-        position 0.20795454183071024
+        position 0.1675556559101368
         axis 0 0 1
         anchor 0 0.05 0
       }
@@ -237,14 +237,14 @@ DEF HEXAPOD Robot {
       ]
       endPoint Solid {
         translation 0 0.05 0
-        rotation 0 0 1 0.2079545418307096
+        rotation 0 0 0.9999999999999999 0.1675556559101359
         children [
           USE HIP_SHAPE
           USE FEMUR_TRANS
           USE KNEE_TRANS
           DEF KNEE_SLIDER_JOINT_L1 SliderJoint {
             jointParameters JointParameters {
-              position -0.015455975240362648
+              position -0.014928061689772516
               axis 0 0 -1
               minStop -0.02
               maxStop 0.02
@@ -258,28 +258,28 @@ DEF HEXAPOD Robot {
               }
             ]
             endPoint Solid {
-              translation 0 0.11 -0.01454402475963735
-              rotation 1 0 0 1.5708
+              translation 0 0.11 -0.015071938310227483
+              rotation 1 -1.4203132455194153e-13 2.1047054586863924e-13 1.570799999998761
               children [
                 USE TIBIA_TRANS
               ]
               boundingObject USE TIBIA_TRANS
               physics USE STANDARD_PHYSICS
-              linearVelocity -0.001109103943134637 -0.0030590221839629944 3.03297009989483e-06
-              angularVelocity 4.839634356010012e-05 9.601274254839769e-05 0.12111123188438959
+              linearVelocity 0.0037432154723836307 0.005384041985347593 -0.0003367066660406973
+              angularVelocity -0.0017283496062760013 0.0012010102041956432 -0.4308411595790168
             }
           }
         ]
         name "l1"
         boundingObject USE KNEE_TRANS
         physics USE STANDARD_PHYSICS
-        linearVelocity -0.0011426061788284351 -0.003058531727666097 -0.007483191575690176
-        angularVelocity 4.863791037676098e-05 9.719350520328115e-05 0.12111096935585254
+        linearVelocity 0.003629487198105682 0.0057006903680400945 0.018777545052242085
+        angularVelocity -0.0017170379718465458 0.0012062308951370326 -0.4308388726828323
       }
     }
     DEF HIP_HINGE_JOINT_L2 HingeJoint {
       jointParameters HingeJointParameters {
-        position -0.014432518918531513
+        position -0.01386982351826203
         axis 0 0 1
         anchor -0.2 0.05 0
       }
@@ -293,14 +293,14 @@ DEF HEXAPOD Robot {
       ]
       endPoint Solid {
         translation -0.2 0.05 0
-        rotation 0 0 -1 0.01443251891853881
+        rotation 0 0 -1 0.013869823518274383
         children [
           USE HIP_SHAPE
           USE FEMUR_TRANS
           USE KNEE_TRANS
           DEF KNEE_SLIDER_JOINT_L2 SliderJoint {
             jointParameters JointParameters {
-              position -0.015997432274464395
+              position -0.015968735415702606
               axis 0 0 -1
               minStop -0.02
               maxStop 0.02
@@ -314,28 +314,28 @@ DEF HEXAPOD Robot {
               }
             ]
             endPoint Solid {
-              translation 0 0.11 -0.014002567725535604
+              translation 0 0.11 -0.014031264584297393
               rotation 1 0 0 1.5708
               children [
                 USE TIBIA_TRANS
               ]
               boundingObject USE TIBIA_TRANS
               physics USE STANDARD_PHYSICS
-              linearVelocity 0.041430222617862625 -0.04113189373663727 -0.0074769709293474014
-              angularVelocity -0.00018866293871382852 -2.5813434668798566e-05 -0.40019037789513406
+              linearVelocity -0.06516811841281968 0.061154699562901045 0.019165623175963487
+              angularVelocity -0.0014280276748924463 0.0013233310856211639 0.37086157697424416
             }
           }
         ]
         name "l2"
         boundingObject USE KNEE_TRANS
         physics USE STANDARD_PHYSICS
-        linearVelocity 0.04143142577302116 -0.04113200950042353 -0.007484612103113875
-        angularVelocity -0.00018866435333863798 -2.5815001055508385e-05 -0.40019037777381705
+        linearVelocity -0.06514699324212307 0.061172618914457313 0.01884556421079956
+        angularVelocity -0.0014280531405196392 0.001323306701718663 0.37086157394897784
       }
     }
     DEF HIP_HINGE_JOINT_R0 HingeJoint {
       jointParameters HingeJointParameters {
-        position -0.2077400453500612
+        position -0.16755446622071204
         axis 0 0 1
         anchor 0.2 -0.05 0
       }
@@ -349,7 +349,7 @@ DEF HEXAPOD Robot {
       ]
       endPoint Solid {
         translation 0.2 -0.05 0
-        rotation 0 0 -0.9999999999999999 0.2077400453500612
+        rotation 0 0 -1 0.16755446622071296
         children [
           USE HIP_SHAPE
           DEF RIGHT_FEMUR_TRANS Pose {
@@ -366,7 +366,7 @@ DEF HEXAPOD Robot {
           }
           DEF KNEE_SLIDER_JOINT_R0 SliderJoint {
             jointParameters JointParameters {
-              position -0.01539660130223379
+              position -0.01490200177121846
               axis 0 0 -1
               minStop -0.02
               maxStop 0.02
@@ -380,28 +380,28 @@ DEF HEXAPOD Robot {
               }
             ]
             endPoint Solid {
-              translation 0 -0.11 -0.01460339869776621
-              rotation 1 0 0 1.5708
+              translation 0 -0.11 -0.015097998228781538
+              rotation 1 -2.325712052244128e-13 7.468779262358858e-14 1.5707999999989197
               children [
                 USE TIBIA_TRANS
               ]
               boundingObject USE TIBIA_TRANS
               physics USE STANDARD_PHYSICS
-              linearVelocity 0.0010962016384425 0.0012939185554622658 2.0201972397891414e-05
-              angularVelocity -7.015857458881842e-05 3.5785417963122077e-05 -0.1311579224108895
+              linearVelocity -0.003692483962051612 -0.006592390383389346 -3.147358725144318e-05
+              angularVelocity -0.0013958355426190454 0.001312952121494953 0.4536280564571793
             }
           }
         ]
         name "r0"
         boundingObject USE RIGHT_KNEE_TRANS
         physics USE STANDARD_PHYSICS
-        linearVelocity 0.001075089485250904 0.0013497911963851685 -0.007484886556936672
-        angularVelocity -6.801218271793404e-05 3.657648003016409e-05 -0.13115759529687362
+        linearVelocity -0.003826508291388 -0.006561376603281705 0.019443477056556305
+        angularVelocity -0.0013957083148924809 0.001319169201220713 0.4536262759752278
       }
     }
     DEF HIP_HINGE_JOINT_R1 HingeJoint {
       jointParameters HingeJointParameters {
-        position 0.014330023088013844
+        position 0.013868807118010362
         axis 0 0 1
         anchor 0 -0.05 0
       }
@@ -415,14 +415,14 @@ DEF HEXAPOD Robot {
       ]
       endPoint Solid {
         translation 0 -0.05 0
-        rotation 0 0 1 0.014330023088018874
+        rotation 0 0 1 0.013868807117997307
         children [
           USE HIP_SHAPE
           USE RIGHT_FEMUR_TRANS
           USE RIGHT_KNEE_TRANS
           DEF KNEE_SLIDER_JOINT_R1 SliderJoint {
             jointParameters JointParameters {
-              position -0.015997826023082678
+              position -0.015983526502074425
               axis 0 0 -1
               minStop -0.02
               maxStop 0.02
@@ -436,28 +436,28 @@ DEF HEXAPOD Robot {
               }
             ]
             endPoint Solid {
-              translation 0 -0.11 -0.014002173976917314
+              translation 0 -0.11 -0.014016473497925567
               rotation 1 0 0 1.5708
               children [
                 USE TIBIA_TRANS
               ]
               boundingObject USE TIBIA_TRANS
               physics USE STANDARD_PHYSICS
-              linearVelocity 0.04039860203309667 -0.03987163757584022 -0.0074728392293690726
-              angularVelocity 0.00017168370419438174 0.000162619840455114 0.38994236623173334
+              linearVelocity -0.06183518508261915 0.059324542914150714 0.01968280988241832
+              angularVelocity -0.001669249514026145 0.0012191086301912954 -0.34803728831298403
             }
           }
         ]
         name "r1"
         boundingObject USE RIGHT_KNEE_TRANS
         physics USE STANDARD_PHYSICS
-        linearVelocity 0.04039970780290809 -0.03987175123898206 -0.00747620405339414
-        angularVelocity 0.00017168236575113675 0.00016261890061556298 0.3899423660902222
+        linearVelocity -0.06181348338448978 0.05934262490152058 0.019523527603835765
+        angularVelocity -0.0016692702905387945 0.0012190804733691607 -0.3480372860470437
       }
     }
     DEF HIP_HINGE_JOINT_R2 HingeJoint {
       jointParameters HingeJointParameters {
-        position -0.2077405633043122
+        position -0.16755352946965582
         axis 0 0 1
         anchor -0.2 -0.05 0
       }
@@ -471,14 +471,14 @@ DEF HEXAPOD Robot {
       ]
       endPoint Solid {
         translation -0.2 -0.05 0
-        rotation 0 0 -1 0.20774056330431187
+        rotation 0 0 -1 0.1675535294696553
         children [
           USE HIP_SHAPE
           USE RIGHT_FEMUR_TRANS
           USE RIGHT_KNEE_TRANS
           DEF KNEE_SLIDER_JOINT_R2 SliderJoint {
             jointParameters JointParameters {
-              position -0.01537162547805855
+              position -0.014884674148480848
               axis 0 0 -1
               minStop -0.02
               maxStop 0.02
@@ -492,23 +492,23 @@ DEF HEXAPOD Robot {
               }
             ]
             endPoint Solid {
-              translation 0 -0.11 -0.01462837452194145
-              rotation 1 0 0 1.5708
+              translation 0 -0.11 -0.015115325851519151
+              rotation 1 -2.3380528150137374e-13 7.284186406947634e-14 1.5707999999989226
               children [
                 USE TIBIA_TRANS
               ]
               boundingObject USE TIBIA_TRANS
               physics USE STANDARD_PHYSICS
-              linearVelocity 0.0024560427291477455 0.002810859093851851 -1.4606789761404422e-05
-              angularVelocity -6.624302409074509e-05 3.857769898657222e-05 -0.13117577014290074
+              linearVelocity -0.007181559255147352 -0.009862133144885628 -9.239425413652387e-05
+              angularVelocity -0.0014049994747910247 0.0013338395259077998 0.453639054820383
             }
           }
         ]
         name "r2"
         boundingObject USE RIGHT_KNEE_TRANS
         physics USE STANDARD_PHYSICS
-        linearVelocity 0.0024518761952021925 0.002807794907410846 -0.007452995009773529
-        angularVelocity -6.629201669992762e-05 3.8718974104257384e-05 -0.13117576694509836
+        linearVelocity -0.007185752307984112 -0.00980690787180756 0.019477398691843346
+        angularVelocity -0.0014039157770306448 0.0013351346241029802 0.45363859663367023
       }
     }
     DEF BODY_SHAPE Shape {
@@ -537,19 +537,19 @@ DEF HEXAPOD Robot {
   physics USE STANDARD_PHYSICS
   controller "delivery_robot"
   supervisor TRUE
-  linearVelocity 0.00981994796246024 -0.010146857827481539 -0.00747794886497845
-  angularVelocity -8.408424952250687e-06 6.843613979707898e-05 -0.004937103457955489
+  linearVelocity -0.03475883937982712 0.03302801350874984 0.019192503129498426
+  angularVelocity -0.001548702414862984 0.0012711361996077374 0.011406752475359612
 }
 Solid {
   translation 23.162120091563185 -23.728534427631555 0.04990190000000001
-  rotation -3.185961117101974e-17 3.617168169810052e-18 0.9999999999999999 3.0407608440726888
+  rotation 1.4696911499328667e-18 -4.444164310571165e-19 1 3.0407608440726888
   boundingObject Box {
     size 0.1 0.1 0.1
   }
   physics Physics {
   }
-  linearVelocity -8.833167763335513e-18 -1.1134486029977093e-17 -2.41584530158434e-16
-  angularVelocity 4.930380657631324e-32 -6.66133814775094e-17 7.059869665948775e-17
+  linearVelocity 8.298170308994515e-19 6.760734340196733e-18 -2.55795384873636e-16
+  angularVelocity -5.7931972727168054e-30 1.332267629550157e-16 1.7719507928598666e-17
 }
 Shape {
   appearance USE METAL_APPEARANCE
@@ -558,7 +558,7 @@ Shape {
   }
 }
 DEF OBSTACLE_SOLID_1 Solid {
-  translation 23.9 -22.6 0.15
+  translation 24.7 -2 0.15
   children [
     Shape {
       appearance PBRAppearance {
